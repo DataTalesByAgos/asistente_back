@@ -10,15 +10,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
-COPY backend/requirements.txt ./
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
-# Copy backend source code
-COPY backend/ .
+# Copy backend source code (assumes Docker build context is the `backend/` folder)
+COPY . .
 
-# Expose port (Render will use PORT env var or this default)
+# Expose port (Render will set $PORT for you)
 EXPOSE 8000
 
-# Run FastAPI app with gunicorn + uvicorn worker
-# Adjust workers (-w) based on your needs; 1-2 is typical for small apps
-CMD ["gunicorn", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "main:app"]
+# Use shell form so ${PORT} is expanded at runtime; default to 8000 if not set
+CMD ["sh", "-c", "gunicorn -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:${PORT:-8000} main:app"]

@@ -10,3 +10,4 @@ PyPDF2
 gtts
 pypdf
 python-multipart
+gunicorn
