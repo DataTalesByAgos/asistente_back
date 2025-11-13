@@ -1,25 +1,24 @@
-# Example Dockerfile for Python backend. Adjust CMD depending on framework.
-# Assumes there's a `requirements.txt` at repo root and the app exposes an ASGI/WSGI app
-# If your `main.py` exposes a FastAPI/Flask `app` object, this uses gunicorn+uvicorn worker.
+# Dockerfile for Python FastAPI backend
+# Builds a production-ready image with all dependencies
 
 FROM python:3.11-slim
 WORKDIR /app
 
-# Install system deps needed for many Python packages
+# Install system deps needed for Python packages (especially sentence-transformers, faiss)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements first to leverage Docker cache
+COPY backend/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
-# Copy app sources
-COPY . .
+# Copy backend source code
+COPY backend/ .
 
-# Default port (Render uses PORT env var)
-ENV PORT=8000
+# Expose port (Render will use PORT env var or this default)
+EXPOSE 8000
 
-# CMD: try to run as ASGI app with gunicorn+uvicorn worker (FastAPI example)
-# If your app is plain script, replace with: CMD ["python", "main.py"]
-CMD ["gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "main:app", "--bind", "0.0.0.0:8000"]
+# Run FastAPI app with gunicorn + uvicorn worker
+# Adjust workers (-w) based on your needs; 1-2 is typical for small apps
+CMD ["gunicorn", "-w", "2", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8000", "main:app"]
