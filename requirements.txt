@@ -2,10 +2,6 @@ fastapi
 uvicorn
 requests
 python-dotenv
-langchain
-langchain-community
-sentence-transformers
-faiss-cpu
 PyPDF2
 gtts
 pypdf
