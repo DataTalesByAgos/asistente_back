@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+requests
+langchain
+langchain-community
+sentence-transformers
+faiss-cpu
+PyPDF2
+gtts
+pypdf
+python-multipart
